@@ -13,4 +13,10 @@
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
+
+    <style name="MyRatingStyle" parent="Widget.AppCompat.RatingBar">
+        <item name="android:progressDrawable">@drawable/ic_favorite</item>
+        <item name="minHeight">16dp</item>
+        <item name="minWidth">16dp</item>
+    </style>
 </resources>
