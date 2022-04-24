@@ -1,13 +1,20 @@
 package com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.adapters;
 
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
+import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.R;
 import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.databinding.MovieItemLayoutBinding;
 import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.models.Movie;
 import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.utils.Constants;
@@ -18,14 +25,17 @@ import java.util.List;
 public class PopularAdapter extends RecyclerView.Adapter<PopularAdapter.ViewHolder> {
 
     private List<Movie> movies;
+    private int oldSize;
+
 
     public PopularAdapter() {
         movies = new ArrayList<>();
     }
 
     public void setMovies(List<Movie> movies) {
-        this.movies = movies;
-        notifyDataSetChanged();
+        oldSize = this.movies.size();
+        this.movies.addAll(movies);
+        notifyItemRangeInserted(oldSize, this.movies.size());
     }
 
     @NonNull
@@ -56,10 +66,25 @@ public class PopularAdapter extends RecyclerView.Adapter<PopularAdapter.ViewHold
 
         public void bindView(Movie movie) {
             binding.movieName.setText(movie.getTitle());
-            binding.ratingBar.setRating((float) movie.getVoteAverage()/2);
+            binding.ratingBar.setRating((float) movie.getVoteAverage() / 2);
             Glide
                     .with(binding.getRoot().getContext())
                     .load(Constants.IMAGE_BASE_URL + movie.getPosterPath())
+                    .listener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            binding.producer.setVisibility(View.GONE);
+                            binding.moviePoster.setImageResource(R.drawable.ic_launcher_background);
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            binding.progress.setVisibility(View.GONE);
+                            binding.moviePoster.setImageResource(R.drawable.ic_launcher_background);
+                            return false;
+                        }
+                    })
                     .into(binding.moviePoster);
             binding.rating.setText(String.valueOf(movie.getVoteAverage()));
             binding.releaseDate.setText(movie.getReleaseDate());

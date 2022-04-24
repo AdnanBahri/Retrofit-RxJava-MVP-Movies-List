@@ -20,10 +20,19 @@
             android:clickable="true"
             android:focusable="true"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_launcher_background"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <ProgressBar
+            android:id="@+id/progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            app:layout_constraintStart_toStartOf="@id/movie_poster"
+            app:layout_constraintTop_toTopOf="@id/movie_poster"
+            app:layout_constraintBottom_toBottomOf="@id/movie_poster"
+            app:layout_constraintEnd_toEndOf="@id/movie_poster"/>
 
         <TextView
             android:id="@+id/movie_name"

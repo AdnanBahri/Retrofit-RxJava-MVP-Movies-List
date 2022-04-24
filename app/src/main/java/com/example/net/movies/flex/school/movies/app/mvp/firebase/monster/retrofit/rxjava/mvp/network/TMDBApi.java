@@ -10,6 +10,7 @@ public interface TMDBApi {
 
     @GET("movie/popular")
     Flowable<MoviesResponse> getMovies(
-            @Query("api_key") String api_key
+            @Query("api_key") String api_key,
+            @Query("page") int page
     );
 }

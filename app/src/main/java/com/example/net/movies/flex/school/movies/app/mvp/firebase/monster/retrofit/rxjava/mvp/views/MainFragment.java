@@ -11,30 +11,28 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.adapters.PopularAdapter;
+import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.contract.MainContractor;
 import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.databinding.FragmentMainBinding;
-import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.models.MoviesResponse;
 import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.presenters.MainPresenter;
 import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.utils.Constants;
 
-import org.reactivestreams.Subscription;
 
-import io.reactivex.rxjava3.core.FlowableSubscriber;
-import io.reactivex.rxjava3.functions.Consumer;
-
-
-public class MainFragment extends Fragment {
+public class MainFragment extends Fragment implements MainContractor.View {
 
     private FragmentMainBinding binding;
     private MainPresenter presenter;
     private PopularAdapter adapter;
+    private int totalAvailablePages = 0;
+    private int currentPage = 1;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentMainBinding.inflate(inflater, container, false);
-        presenter = new MainPresenter();
+        presenter = new MainPresenter(this);
         return binding.getRoot();
     }
 
@@ -42,38 +40,7 @@ public class MainFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setupUI();
-        presenter.getMovies(Constants.API_KEY)
-                .subscribe(moviesResponse -> {
-                    try {
-                        adapter.setMovies(moviesResponse.getMovies());
-                    }catch (Exception e){
-                        Log.e("Error MSG",e.getMessage());
-                    }
-                });
-                /*.subscribe(new FlowableSubscriber<MoviesResponse>() {
-                    @Override
-                    public void onSubscribe(@io.reactivex.rxjava3.annotations.NonNull Subscription s) {
-
-                    }
-
-                    @Override
-                    public void onNext(MoviesResponse moviesResponse) {
-                        if (moviesResponse.getMovies()!=null)
-                            adapter.setMovies(moviesResponse.getMovies());
-                        else
-                            Toast.makeText(getContext(), "Movies List is Null", Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onError(Throwable t) {
-                        Log.e("On Error",t.getMessage());
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        Toast.makeText(getContext(), "Loading Movies is Completed", Toast.LENGTH_SHORT).show();
-                    }
-                });*/
+        fetchData();
     }
 
     private void setupUI() {
@@ -81,5 +48,60 @@ public class MainFragment extends Fragment {
         binding.recycler.setHasFixedSize(true);
         binding.recycler.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recycler.setAdapter(adapter);
+        binding.recycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if (!binding.recycler.canScrollVertically(1)) {
+                    if (currentPage <= totalAvailablePages) {
+                        currentPage++;
+                        fetchData();
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
+    public void showProgress() {
+        binding.mainProgress.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void hideProgress() {
+        binding.mainProgress.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void showLoadMoreProgress() {
+        binding.progress.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void hideLoadMoreProgress() {
+        binding.progress.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void fetchData() {
+        if (currentPage == 1)
+            showProgress();
+        else {
+            Toast.makeText(getContext(), "Fetch Data Show Load More Progress Bar", Toast.LENGTH_SHORT).show();
+            showLoadMoreProgress();
+        }
+        presenter.getMovies(Constants.API_KEY, currentPage)
+                .subscribe(moviesResponse -> {
+                    try {
+                        if (currentPage == 1) {
+                            hideProgress();
+                            totalAvailablePages = moviesResponse.getTotalPages();
+                        } else
+                            hideLoadMoreProgress();
+                        adapter.setMovies(moviesResponse.getMovies());
+                    } catch (Exception e) {
+                        Log.e("Error MSG", e.getMessage());
+                    }
+                });
     }
 }
