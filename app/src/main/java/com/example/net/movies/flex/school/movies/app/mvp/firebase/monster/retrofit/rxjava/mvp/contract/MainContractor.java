@@ -16,6 +16,8 @@ public interface MainContractor {
         void hideLoadMoreProgress();
 
         void fetchData();
+
+        void search();
     }
 
     interface Presenter {

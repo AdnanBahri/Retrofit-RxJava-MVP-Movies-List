@@ -4,6 +4,8 @@ import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,20 +24,23 @@ import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrof
 import java.util.ArrayList;
 import java.util.List;
 
-public class PopularAdapter extends RecyclerView.Adapter<PopularAdapter.ViewHolder> {
+public class PopularAdapter extends RecyclerView.Adapter<PopularAdapter.ViewHolder> implements Filterable {
 
     private List<Movie> movies;
+    private List<Movie> filteredMovies;
     private int oldSize;
 
 
     public PopularAdapter() {
         movies = new ArrayList<>();
+        filteredMovies = new ArrayList<>();
     }
 
     public void setMovies(List<Movie> movies) {
         oldSize = this.movies.size();
         this.movies.addAll(movies);
         notifyItemRangeInserted(oldSize, this.movies.size());
+        filteredMovies = this.movies;
     }
 
     @NonNull
@@ -47,12 +52,42 @@ public class PopularAdapter extends RecyclerView.Adapter<PopularAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.bindView(movies.get(position));
+        holder.bindView(filteredMovies.get(position));
     }
 
     @Override
     public int getItemCount() {
-        return movies.size();
+        return filteredMovies.size();
+    }
+
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence charSequence) {
+
+                String key = charSequence.toString();
+                if (key.isEmpty() || key.trim().isEmpty())
+                    filteredMovies = movies;
+                else {
+                    List<Movie> temp = new ArrayList<>();
+                    for (Movie movie : movies) {
+                        if (movie.getOriginalTitle().toLowerCase().contains(key))
+                            temp.add(movie);
+                    }
+                    filteredMovies = temp;
+                }
+                FilterResults results = new FilterResults();
+                results.values = filteredMovies;
+                return results;
+            }
+
+            @Override
+            protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+                filteredMovies= (List<Movie>) filterResults.values;
+                notifyDataSetChanged();
+            }
+        };
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

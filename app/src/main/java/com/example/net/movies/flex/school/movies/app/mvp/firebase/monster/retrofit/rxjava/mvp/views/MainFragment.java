@@ -1,11 +1,12 @@
 package com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.views;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,6 +28,7 @@ public class MainFragment extends Fragment implements MainContractor.View {
     private PopularAdapter adapter;
     private int totalAvailablePages = 0;
     private int currentPage = 1;
+    private boolean canLoadMore = true;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -41,6 +43,7 @@ public class MainFragment extends Fragment implements MainContractor.View {
         super.onViewCreated(view, savedInstanceState);
         setupUI();
         fetchData();
+        search();
     }
 
     private void setupUI() {
@@ -52,7 +55,7 @@ public class MainFragment extends Fragment implements MainContractor.View {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                if (!binding.recycler.canScrollVertically(1)) {
+                if (!binding.recycler.canScrollVertically(1) && canLoadMore) {
                     if (currentPage <= totalAvailablePages) {
                         currentPage++;
                         fetchData();
@@ -87,7 +90,6 @@ public class MainFragment extends Fragment implements MainContractor.View {
         if (currentPage == 1)
             showProgress();
         else {
-            Toast.makeText(getContext(), "Fetch Data Show Load More Progress Bar", Toast.LENGTH_SHORT).show();
             showLoadMoreProgress();
         }
         presenter.getMovies(Constants.API_KEY, currentPage)
@@ -103,5 +105,26 @@ public class MainFragment extends Fragment implements MainContractor.View {
                         Log.e("Error MSG", e.getMessage());
                     }
                 });
+    }
+
+    @Override
+    public void search() {
+        binding.searchInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (!binding.searchInput.getText().toString().trim().isEmpty())
+                    adapter.getFilter().filter(charSequence);
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                canLoadMore = binding.searchInput.getText().toString().trim().isEmpty();
+            }
+        });
     }
 }
