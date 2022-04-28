@@ -7,16 +7,19 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.adapters.PopularAdapter;
 import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.contract.MainContractor;
 import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.databinding.FragmentMainBinding;
+import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.models.Movie;
 import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.presenters.MainPresenter;
 import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.utils.Constants;
 
@@ -31,9 +34,16 @@ public class MainFragment extends Fragment implements MainContractor.View {
     private boolean canLoadMore = true;
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        binding = FragmentMainBinding.inflate(inflater, container, false);
+        if (binding == null)
+            binding = FragmentMainBinding.inflate(inflater, container, false);
         presenter = new MainPresenter(this);
         return binding.getRoot();
     }
@@ -47,7 +57,7 @@ public class MainFragment extends Fragment implements MainContractor.View {
     }
 
     private void setupUI() {
-        adapter = new PopularAdapter();
+        adapter = new PopularAdapter(this);
         binding.recycler.setHasFixedSize(true);
         binding.recycler.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recycler.setAdapter(adapter);
@@ -83,6 +93,12 @@ public class MainFragment extends Fragment implements MainContractor.View {
     @Override
     public void hideLoadMoreProgress() {
         binding.progress.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
     }
 
     @Override
@@ -126,5 +142,11 @@ public class MainFragment extends Fragment implements MainContractor.View {
                 canLoadMore = binding.searchInput.getText().toString().trim().isEmpty();
             }
         });
+    }
+
+    @Override
+    public void navigate(Movie movie) {
+
+        Toast.makeText(getContext(), ""+movie.getTitle(), Toast.LENGTH_SHORT).show();
     }
 }

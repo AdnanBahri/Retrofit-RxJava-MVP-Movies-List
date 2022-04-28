@@ -4,6 +4,7 @@ import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 import android.widget.Filter;
 import android.widget.Filterable;
 
@@ -17,6 +18,7 @@ import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.R;
+import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.contract.MainContractor;
 import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.databinding.MovieItemLayoutBinding;
 import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.models.Movie;
 import com.example.net.movies.flex.school.movies.app.mvp.firebase.monster.retrofit.rxjava.mvp.utils.Constants;
@@ -29,9 +31,11 @@ public class PopularAdapter extends RecyclerView.Adapter<PopularAdapter.ViewHold
     private List<Movie> movies;
     private List<Movie> filteredMovies;
     private int oldSize;
+    private MainContractor.View listener;
 
 
-    public PopularAdapter() {
+    public PopularAdapter(MainContractor.View listener) {
+        this.listener = listener;
         movies = new ArrayList<>();
         filteredMovies = new ArrayList<>();
     }
@@ -84,7 +88,7 @@ public class PopularAdapter extends RecyclerView.Adapter<PopularAdapter.ViewHold
 
             @Override
             protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
-                filteredMovies= (List<Movie>) filterResults.values;
+                filteredMovies = (List<Movie>) filterResults.values;
                 notifyDataSetChanged();
             }
         };
@@ -100,6 +104,8 @@ public class PopularAdapter extends RecyclerView.Adapter<PopularAdapter.ViewHold
         }
 
         public void bindView(Movie movie) {
+            binding.movieCard.setAnimation(AnimationUtils.loadAnimation(binding.getRoot().getContext(), R.anim.fade_in_anim));
+            binding.movieCard.setOnClickListener(v -> listener.navigate(movie));
             binding.movieName.setText(movie.getTitle());
             binding.ratingBar.setRating((float) movie.getVoteAverage() / 2);
             Glide
